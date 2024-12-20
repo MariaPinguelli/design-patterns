@@ -1,20 +1,21 @@
 # State
-## Intent
+#### Também conhecido como: Estado
 
-**State** is a behavioral design pattern that lets an object alter its behavior when its internal state changes. It appears as if the object changed its class.
+## Propósito
+O **State** é um padrão de projeto comportamental que permite que um objeto altere seu comportamento quando seu estado interno muda. Parece como se o objeto mudasse de classe.
 
-## Problem
-The State pattern is closely related to the concept of a Finite-State Machine 
+## Problema
+O padrão State é intimamente relacionado com o conceito de uma Máquina de Estado Finito.
 
-The main idea is that, at any given moment, there’s a finite number of states which a program can be in. Within any unique state, the program behaves differently, and the program can be switched from one state to another instantaneously. However, depending on a current state, the program may or may not switch to certain other states. These switching rules, called transitions, are also finite and predetermined.
+A ideia principal é que, em qualquer dado momento, há um número finito de estados que um programa possa estar. Dentro de qualquer estado único, o programa se comporta de forma diferente, e o programa pode ser trocado de um estado para outro instantaneamente. Contudo, dependendo do estado atual, o programa pode ou não trocar para outros estados. Essas regras de troca, chamadas transições, também são finitas e pré determinadas.
 
-You can also apply this approach to objects. Imagine that we have a Document class. A document can be in one of three states: Draft, Moderation and Published. The publish method of the document works a little bit differently in each state:
+Você também pode aplicar essa abordagem para objetos. Imagine que nós temos uma classe ```Documento```. Um documento pode estar em um de três estados: ```Rascunho```, ```Moderação``` e ```Publicado```. O método ```publicar``` do documento funciona um pouco diferente em cada estado:
 
-- In `Draft`, it moves the document to moderation.
-- In `Moderation`, it makes the document public, but only if the current user is an administrator.
-- In `Published`, it doesn’t do anything at all.
+- No ```Rascunho```, ele move o documento para a moderação.
+- Na ```Moderação``` ele torna o documento público, mas apenas se o usuário atual é um administrador.
+- No ```Publicado``` ele não faz nada.
 
-State machines are usually implemented with lots of conditional statements (if or switch) that select the appropriate behavior depending on the current state of the object. Usually, this “state” is just a set of values of the object’s fields. Even if you’ve never heard about finite-state machines before, you’ve probably implemented a state at least once. Does the following code structure ring a bell?
+Máquinas de estado são geralmente implementadas com muitos operadores de condicionais (```if``` ou ```switch```) que selecionam o comportamento apropriado dependendo do estado atual do objeto. Geralmente esse “estado” é apenas um conjunto de valores dos campos do objeto. Mesmo se você nunca ouviu falar sobre máquinas de estado finito antes, você provavelmente já implementou um estado ao menos uma vez. A seguinte estrutura de código lembra alguma coisa para você?
 
 ```
 class Document is
@@ -30,53 +31,53 @@ class Document is
                     state = "published"
                 break
             "published":
-                // Do nothing.
+                // Não fazer nada.
                 break
     // ...
 ```
 
-The biggest weakness of a state machine based on conditionals reveals itself once we start adding more and more states and state-dependent behaviors to the Document class. Most methods will contain monstrous conditionals that pick the proper behavior of a method according to the current state. Code like this is very difficult to maintain because any change to the transition logic may require changing state conditionals in every method.
+A maior fraqueza de uma máquina de estados baseada em condicionais se revela quando começamos a adicionar mais e mais estados e comportamentos baseados em estados para a classe ```Documento```. A maioria dos métodos irá conter condicionais monstruosas que selecionam o comportamento apropriado de um método de acordo com o estado atual. Um código como esse é muito difícil de se fazer manutenção porque qualquer mudança na lógica de transição pode necessitar de mudanças de condicionais de estado em todos os métodos.
 
-The problem tends to get bigger as a project evolves. It’s quite difficult to predict all possible states and transitions at the design stage. Hence, a lean state machine built with a limited set of conditionals can grow into a bloated mess over time.
+O problema tende a ficar maior a medida que o projeto evolui. É muito difícil prever todos os possíveis estados e transições no estágio inicial de projeto. Portanto, uma máquina de estados enxuta, construída com um número limitado de condicionais pode se tornar uma massa inchada e disforme com o tempo.
 
-## Solution
+## Solução
+O padrão State sugere que você crie novas classes para todos os estados possíveis de um objeto e extraia todos os comportamentos específicos de estados para dentro dessas classes.
 
-The State pattern suggests that you create new classes for all possible states of an object and extract all state-specific behaviors into these classes.
+Ao invés de implementar todos os comportamentos por conta própria, o objeto original, chamado contexto, armazena uma referência para um dos objetos de estado que representa seu estado atual, e delega todo o trabalho relacionado aos estados para aquele objeto.
 
-Instead of implementing all behaviors on its own, the original object, called context, stores a reference to one of the state objects that represents its current state, and delegates all the state-related work to that object.
+Para fazer a transição do contexto para outro estado, substitua o objeto do estado ativo por outro objeto que represente o novo estado. Isso é possível somente se todas as classes de estado seguirem a mesma interface e o próprio contexto funcione com esses objetos através daquela interface.
 
-To transition the context into another state, replace the active state object with another object that represents that new state. This is possible only if all state classes follow the same interface and the context itself works with these objects through that interface.
+Essa estrutura pode ser parecida com o padrão Strategy, mas há uma diferença chave. No padrão State, os estados em particular podem estar cientes de cada um e iniciar transições de um estado para outro, enquanto que estratégias quase nunca sabem sobre as outras estratégias.
 
-This structure may look similar to the **Strategy** pattern, but there’s one key difference. In the State pattern, the particular states may be aware of each other and initiate transitions from one state to another, whereas strategies almost never know about each other.
-Real-World Analogy
+## Analogia com o mundo real
 
-The buttons and switches in your smartphone behave differently depending on the current state of the device:
+Os botões e interruptores de seu smartphone comportam-se de forma diferente dependendo do estado atual do dispositivo:
 
-- When the phone is unlocked, pressing buttons leads to executing various functions.
-- When the phone is locked, pressing any button leads to the unlock screen.
-- When the phone’s charge is low, pressing any button shows the charging screen.
+- Quando o telefone está desbloqueado, apertar os botões leva eles a executar várias funções.
+- Quando o telefone está bloqueado, apertar qualquer botão leva a desbloquear a tela.
+- Quando a carga da bateria está baixa, apertar qualquer botão mostra a tela de carregamento.
 
-## Structure
+## Estrutura
 
-1. Context stores a reference to one of the concrete state objects and delegates to it all state-specific work. The context communicates with the state object via the state interface. The context exposes a setter for passing it a new state object.
+1. O Contexto armazena uma referência a um dos objetos concretos de estado e delega a eles todos os trabalhos específicos de estado. O contexto se comunica com o objeto estado através da interface do estado. O contexto expõe um setter para passar a ele um novo objeto de estado.
 
-2. The State interface declares the state-specific methods. These methods should make sense for all concrete states because you don’t want some of your states to have useless methods that will never be called.
+2. A interface do Estado declara métodos específicos a estados. Esses métodos devem fazer sentido para todos os estados concretos porque você não quer alguns dos seus estados tendo métodos inúteis que nunca irão ser chamados.
 
-3. Concrete States provide their own implementations for the state-specific methods. To avoid duplication of similar code across multiple states, you may provide intermediate abstract classes that encapsulate some common behavior.
-State objects may store a backreference to the context object. Through this reference, the state can fetch any required info from the context object, as well as initiate state transitions.
+3. Os Estados Concretos fornecem suas próprias implementações para os métodos específicos de estados. Para evitar duplicação ou código parecido em múltiplos estados, você pode fornecer classes abstratas intermediárias que encapsulam alguns dos comportamentos comuns.
 
-4. Both context and concrete states can set the next state of the context and perform the actual state transition by replacing the state object linked to the context.
+    Objetos de estado podem armazenar referências retroativas para o objeto de contexto. Através dessa referência o estado pode buscar qualquer informação desejada do objeto contexto, assim como iniciar transições de estado.
 
-## Pseudocode
+4. Ambos os estados de contexto e concretos podem configurar o próximo estado do contexto e realizar a atual transição de estado ao substituir o objeto estado ligado ao contexto.
 
-In this example, the State pattern lets the same controls of the media player behave differently, depending on the current playback state.
+## Pseudocódigo
+O padrão **State** permite que os mesmos controles de tocador de mídia se comportem diferentemente, dependendo do atual estado do tocador.
 
-The main object of the player is always linked to a state object that performs most of the work for the player. Some actions replace the current state object of the player with another, which changes the way the player reacts to user interactions.
+O objeto principal do tocador está sempre ligado ao objeto estado que realiza a maior parte do trabalho para o tocador. Algumas ações substituem o objeto do estado atual do tocador por outro, que muda a maneira do tocador reagir às interações do usuário.
 
 ```
-// The AudioPlayer class acts as a context. It also maintains a
-// reference to an instance of one of the state classes that
-// represents the current state of the audio player.
+// A classe AudioPlayer age como um contexto. Ela também mantém
+// uma referência para uma instância de uma das classes de
+// estado que representa o atual estado do tocador de áudio.
 class AudioPlayer is
     field state: State
     field UI, volume, playlist, currentSong
@@ -84,22 +85,22 @@ class AudioPlayer is
     constructor AudioPlayer() is
         this.state = new ReadyState(this)
 
-        // Context delegates handling user input to a state
-        // object. Naturally, the outcome depends on what state
-        // is currently active, since each state can handle the
-        // input differently.
+        // O contexto delega o manuseio das entradas do usuário
+        // para um objeto de estado. Naturalmente, o resultado
+        // depende de qual estado está ativo, uma vez que cada
+        // estado pode lidar com as entradas de forma diferente.
         UI = new UserInterface()
         UI.lockButton.onClick(this.clickLock)
         UI.playButton.onClick(this.clickPlay)
         UI.nextButton.onClick(this.clickNext)
         UI.prevButton.onClick(this.clickPrevious)
 
-    // Other objects must be able to switch the audio player's
-    // active state.
+    // Outros objetos devem ser capazes de trocar o estado ativo
+    // do tocador.
     method changeState(state: State) is
         this.state = state
 
-    // UI methods delegate execution to the active state.
+    // Métodos de UI delegam a execução para o estado ativo.
     method clickLock() is
         state.clickLock()
     method clickPlay() is
@@ -109,7 +110,8 @@ class AudioPlayer is
     method clickPrevious() is
         state.clickPrevious()
 
-    // A state may call some service methods on the context.
+    // Um estado pode chamar alguns métodos de serviço no
+    // contexto.
     method startPlayback() is
         // ...
     method stopPlayback() is
@@ -123,17 +125,17 @@ class AudioPlayer is
     method rewind(time) is
         // ...
 
-
-// The base state class declares methods that all concrete
-// states should implement and also provides a backreference to
-// the context object associated with the state. States can use
-// the backreference to transition the context to another state.
+// A classe de estado base declara métodos que todos os estados
+// concretos devem implementar e também fornece uma referência
+// anterior ao objeto de contexto associado com o estado.
+// Estados podem usar a referência anterior para realizar a
+// transição contexto para outro estado.
 abstract class State is
     protected field player: AudioPlayer
 
-    // Context passes itself through the state constructor. This
-    // may help a state fetch some useful context data if it's
-    // needed.
+    // O contexto passa a si mesmo através do construtor do
+    // estado. Isso pode ajudar o estado a recuperar alguns
+    // dados de contexto úteis se for necessário.
     constructor State(player) is
         this.player = player
 
@@ -143,12 +145,12 @@ abstract class State is
     abstract method clickPrevious()
 
 
-// Concrete states implement various behaviors associated with a
-// state of the context.
+// Estados concretos implementam vários comportamentos
+// associados com um estado do contexto.
 class LockedState extends State is
 
-    // When you unlock a locked player, it may assume one of two
-    // states.
+    // Quando você desbloqueia um tocador bloqueado, ele vai
+    // assumir um dos dois estados.
     method clickLock() is
         if (player.playing)
             player.changeState(new PlayingState(player))
@@ -156,16 +158,16 @@ class LockedState extends State is
             player.changeState(new ReadyState(player))
 
     method clickPlay() is
-        // Locked, so do nothing.
+        // Bloqueado, então não faz nada.
 
     method clickNext() is
-        // Locked, so do nothing.
+        // Bloqueado, então não faz nada.
 
     method clickPrevious() is
-        // Locked, so do nothing.
+        // Bloqueado, então não faz nada.
 
 
-// They can also trigger state transitions in the context.
+// Eles também podem ativar transições de estado no contexto.
 class ReadyState extends State is
     method clickLock() is
         player.changeState(new LockedState(player))
@@ -202,58 +204,56 @@ class PlayingState extends State is
             player.rewind(5)
 ```
 
-## Applicability
+## Aplicabilidade
 
-**Use the State pattern when you have an object that behaves differently depending on its current state, the number of states is enormous, and the state-specific code changes frequently.**
+**Utilize o padrão State quando você tem um objeto que se comporta de maneira diferente dependendo do seu estado atual, quando o número de estados é enorme, e quando o código estado específico muda com frequência.**
 
-The pattern suggests that you extract all state-specific code into a set of distinct classes. As a result, you can add new states or change existing ones independently of each other, reducing the maintenance cost.
+O padrão sugere que você extraia todo o código estado específico para um conjunto de classes distintas. Como resultado, você pode adicionar novos estados ou mudar os existentes independentemente uns dos outros, reduzindo o custo da manutenção.
 
-**Use the pattern when you have a class polluted with massive conditionals that alter how the class behaves according to the current values of the class’s fields.**
+**Utilize o padrão quando você tem uma classe populada com condicionais gigantes que alteram como a classe se comporta de acordo com os valores atuais dos campos da classe.**
 
-The State pattern lets you extract branches of these conditionals into methods of corresponding state classes. While doing so, you can also clean temporary fields and helper methods involved in state-specific code out of your main class.
+O padrão State permite que você extraia ramificações dessas condicionais para dentro de métodos de classes correspondentes. Ao fazer isso, você também limpa para fora da classe principal os campos temporários e os métodos auxiliares envolvidos no código estado específico.
 
-**Use State when you have a lot of duplicate code across similar states and transitions of a condition-based state machine.**
+**Utilize o State quando você tem muito código duplicado em muitos estados parecidos e transições de uma máquina de estado baseada em condições.**
 
-The State pattern lets you compose hierarchies of state classes and reduce duplication by extracting common code into abstract base classes.
+O padrão State permite que você componha hierarquias de classes estado e reduza a duplicação ao extrair código comum para dentro de classes abstratas base.
 
-## How to Implement
+## Como implementar
 
-1. Decide what class will act as the context. It could be an existing class which already has the state-dependent code; or a new class, if the state-specific code is distributed across multiple classes.
+1. Decida qual classe vai agir como contexto. Poderia ser uma classe existente que já tenha código dependente do estado; ou uma nova classe, se o código específico ao estado estiver distribuído em múltiplas classes.
 
-2. Declare the state interface. Although it may mirror all the methods declared in the context, aim only for those that may contain state-specific behavior.
+2. Declare a interface do estado. Embora ela vai espelhar todos os métodos declarados no contexto, mire apenas para aqueles que possam conter comportamento específico ao estado.
 
-3. For every actual state, create a class that derives from the state interface. Then go over the methods of the context and extract all code related to that state into your newly created class.
+3. Para cada estado real, crie uma classe que deriva da interface do estado. Então vá para os métodos do contexto e extraia todo o código relacionado a aquele estado para dentro de sua nova classe.
 
-While moving the code to the state class, you might discover that it depends on private members of the context. There are several workarounds:
+    Ao mover o código para a classe estado, você pode descobrir que ela depende de membros privados do contexto. Há várias maneiras de contornar isso:
+    - Torne esses campos ou métodos públicos.
+    - Transforme o comportamento que você está extraindo para um método público dentro do contexto e chame-o na classe estado. Essa maneira é feia mas rápida, e você pode sempre consertá-la mais tarde.
+    - Aninhe as classes estado dentro da classe contexto, mas apenas se sua linguagem de programação suporta classes aninhadas.
 
-- Make these fields or methods public.
+4. Na classe contexto, adicione um campo de referência do tipo de interface do estado e um setter público que permite sobrescrever o valor daquele campo.
 
-- Turn the behavior you’re extracting into a public method in the context and call it from the state class. This way is ugly but quick, and you can always fix it later.
+5. Vá até o método do contexto novamente e substitua as condicionais de estado vazias por chamadas aos métodos correspondentes do objeto estado.
 
-- Nest the state classes into the context class, but only if your programming language supports nesting classes.
+6. Para trocar o estado do contexto, crie uma instância de uma das classes estado e a passe para o contexto. Você pode fazer isso dentro do próprio contexto, ou em vários estados, ou no cliente. Aonde quer que isso seja feito, a classe se torna dependente da classe estado concreta que ela instanciou.
 
-4. In the context class, add a reference field of the state interface type and a public setter that allows overriding the value of that field.
+## Prós e contras
+### Prós
+- Princípio de responsabilidade única. Organiza o código relacionado a estados particulares em classes separadas.
+- Princípio aberto/fechado. Introduz novos estados sem mudar classes de estado ou contexto existentes.
+- Simplifica o código de contexto ao eliminar condicionais de máquinas de estado pesadas.
 
-5. Go over the method of the context again and replace empty state conditionals with calls to corresponding methods of the state object.
+### Contras
+- Aplicar o padrão pode ser um exagero se a máquina de estado só tem alguns estados ou raramente muda eles.
 
-6. To switch the state of the context, create an instance of one of the state classes and pass it to the context. You can do this within the context itself, or in various states, or in the client. Wherever this is done, the class becomes dependent on the concrete state class that it instantiates.
+## Relações com outros padrões
 
-## Pros and Cons
-### Pros
-- Single Responsibility Principle. Organize the code related to particular states into separate classes.
-- Open/Closed Principle. Introduce new states without changing existing state classes or the context.
-- Simplify the code of the context by eliminating bulky state machine conditionals.
+- O Bridge, State, Strategy (e de certa forma o Adapter) têm estruturas muito parecidas. De fato, todos esses padrões estão baseados em composição, o que é delegar o trabalho para outros objetos. Contudo, eles todos resolvem problemas diferentes. Um padrão não é apenas uma receita para estruturar seu código de uma maneira específica. Ele também pode comunicar a outros desenvolvedores o problema que o padrão resolve.
 
-### Cons
-- Applying the pattern can be overkill if a state machine has only a few states or rarely changes.
+- O State pode ser considerado como uma extensão do Strategy. Ambos padrões são baseados em composição: eles mudam o comportamento do contexto ao delegar algum trabalho para objetos auxiliares. O Strategy faz esses objetos serem completamente independentes e alheios entre si. Contudo, o State não restringe dependências entre estados concretos, permitindo que eles alterem o estado do contexto à vontade.
 
-## Relations with Other Patterns
+## Exemplos de código
 
-- **Bridge**, **State**, **Strategy** (and to some degree **Adapter**) have very similar structures. Indeed, all of these patterns are based on composition, which is delegating work to other objects. However, they all solve different problems. A pattern isn’t just a recipe for structuring your code in a specific way. It can also communicate to other developers the problem the pattern solves.
-
-- **State** can be considered as an extension of **Strategy**. Both patterns are based on composition: they change the behavior of the context by delegating some work to helper objects. Strategy makes these objects completely independent and unaware of each other. However, State doesn’t restrict dependencies between concrete states, letting them alter the state of the context at will.
-
-## Code Examples
 ```ruby
 # The Context defines the interface of interest to clients. It also maintains a
 # reference to an instance of a State subclass, which represents the current
